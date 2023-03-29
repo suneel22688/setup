@@ -1,0 +1,36 @@
+---
+- name: Set up Git on remote server
+  hosts: gitserver
+  become: true
+
+  tasks:
+    # Install Git package
+    - name: Install Git package
+      apt:
+        name: git
+        state: present
+
+    # Set up global Git configuration
+    - name: Set up global Git configuration
+      git_config:
+        scope: global
+        name: user.name
+        value: "John Doe"
+      when: ansible_user != "root"
+
+    - name: Set up global Git configuration
+      git_config:
+        scope: global
+        name: user.email
+        value: "johndoe@example.com"
+      when: ansible_user != "root"
+
+    # Set up SSH key for Git access
+    - name: Set up SSH key for Git access
+      copy:
+        src: "{{ ansible_user_dir }}/.ssh/id_rsa.pub"
+        dest: "/home/git/.ssh/authorized_keys"
+        owner: git
+        group: git
+        mode: "0600"
+      when: ansible_user != "root"
