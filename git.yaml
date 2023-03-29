@@ -1,0 +1,14 @@
+---
+- name: Install Git
+  hosts: your_remote_server
+  become: yes
+
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
