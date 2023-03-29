@@ -59,3 +59,22 @@
     - name: Save firewall rules
       command: ufw save
       
+      
+    =================================================================================
+    Explanation:
+
+The first task installs Java using the apt module.
+The second task creates a user and group for Tomcat using the group and user modules.
+The third task downloads Tomcat from the official website using the get_url module.
+The fourth task extracts the downloaded Tomcat archive to the {{ tomcat_home }} directory using the unarchive module. It also sets the ownership of the directory to the Tomcat user.
+The fifth task configures the Tomcat server by copying a server.xml file from the local templates directory to the remote {{ tomcat_home }}/conf/ directory. The template file can contain any additional configuration required for the Tomcat server.
+The sixth task starts Tomcat using the command module, with the Tomcat user as the become user.
+The seventh task enables a firewall rule to allow traffic on the Tomcat port using the ufw module.
+The eighth task saves the firewall rules using the command module.
+To use this playbook, you need to create a template file for the server.xml configuration and save it in a templates directory. The template file can contain any additional configuration required for the Tomcat server. Here's an example server.xml.j2 template file:
+
+<Server port="8005" shutdown="SHUTDOWN">
+  <Service name="Catalina">
+    <Connector port="{{ tomcat_port }}" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+              
