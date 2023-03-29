@@ -1,0 +1,69 @@
+---
+- name: Install and configure Jenkins
+  hosts: jenkins_server
+  become: true
+
+  tasks:
+    # Install Java package
+    - name: Install Java
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    # Add Jenkins repository key
+    - name: Add Jenkins repository key
+      apt_key:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        state: present
+
+    # Add Jenkins repository to sources list
+    - name: Add Jenkins repository to sources list
+      apt_repository:
+        repo: deb https://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    # Install Jenkins package
+    - name: Install Jenkins
+      apt:
+        name: jenkins
+        state: present
+
+    # Start Jenkins service and enable it at boot
+    - name: Start Jenkins service
+      service:
+        name: jenkins
+        state: started
+        enabled: yes
+
+    # Set up Jenkins admin user
+    - name: Set up Jenkins admin user
+      expect:
+        command: /usr/bin/java -jar /usr/share/jenkins/jenkins.war --httpPort=8080
+        responses:
+          'Admin password:': admin_password
+          'Unlock Jenkins': 'true'
+          'jenkins.install.runSetupWizard': 'false'
+        echo: yes
+      register: jenkins_setup
+      no_log: true
+
+    # Print Jenkins admin password
+    - name: Print Jenkins admin password
+      debug:
+        var: jenkins_setup.stdout_lines
+
+    # Set up Jenkins plugins
+    - name: Set up Jenkins plugins
+      jenkins_plugin:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - git
+        - pipeline
+        - ssh-slaves
+
+    # Set up Jenkins jobs
+    - name: Set up Jenkins jobs
+      jenkins_job:
+        name: "My Jenkins Job"
+        config: "{{ lookup('file', 'my_jenkins_job.xml') }}"
