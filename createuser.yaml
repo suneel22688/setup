@@ -1,0 +1,28 @@
+---
+- name: Create new user and give sudo permissions
+  hosts: your_remote_server
+  become: yes
+
+  vars:
+    new_user: your_new_username
+    new_user_password: your_new_user_password
+    new_user_ssh_key: your_new_user_ssh_public_key
+
+  tasks:
+    - name: Create new user
+      user:
+        name: "{{ new_user }}"
+        password: "{{ new_user_password | password_hash('sha512') }}"
+        create_home: yes
+        shell: /bin/bash
+
+    - name: Add SSH key for new user
+      authorized_key:
+        user: "{{ new_user }}"
+        key: "{{ new_user_ssh_key }}"
+
+    - name: Give new user sudo permissions
+      copy:
+        content: "{{ new_user }} ALL=(ALL) NOPASSWD:ALL"
+        dest: /etc/sudoers.d/{{ new_user }}
+        mode: 0440
