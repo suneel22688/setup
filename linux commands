@@ -1,0 +1,55 @@
+cd: Change directory
+
+Syntax: cd directory_path
+Example: cd /home/user
+ls: List files and directories in the current directory
+
+Syntax: ls [options] [directory]
+Example: ls -l /home/user
+mkdir: Create a new directory
+
+Syntax: mkdir directory_name
+Example: mkdir my_new_directory
+rm: Remove files or directories
+
+Syntax: rm [options] file_or_directory
+Example: rm file.txt or rm -r my_directory
+cp: Copy files or directories
+
+Syntax: cp [options] source_file destination_file
+Example: cp file1.txt file2.txt or cp -r my_directory/ my_backup/
+mv: Move or rename files or directories
+
+Syntax: mv [options] source_file destination_file
+Example: mv file1.txt file2.txt or mv my_directory/ new_directory/
+sudo: Run a command with administrative privileges
+
+Syntax: sudo command
+Example: sudo apt-get update
+systemctl: Manage system services and daemons
+
+Syntax: systemctl [command] service_name
+Example: systemctl start nginx.service or systemctl stop apache2.service
+journalctl: View system logs and journal entries
+
+Syntax: journalctl [options]
+Example: journalctl -u nginx.service or journalctl -f
+grep: Search for text within files or command output
+
+Syntax: grep [options] search_string file
+Example: grep "error" log.txt or grep -r "function_name" /var/www/html
+ps: View currently running processes
+Syntax: ps [options]
+Example: ps -ef
+top: Monitor system resource usage
+Syntax: top
+Example: top
+ssh: Connect to remote servers via SSH protocol
+Syntax: ssh username@remote_host
+Example: ssh user@192.168.1.100
+scp: Copy files securely between local and remote servers
+Syntax: scp [options] source_file destination_file
+Example: scp file.txt user@192.168.1.100:/home/user/ or scp -r my_directory/ user@192.168.1.100:/home/user/
+tar: Compress or extract files and directories
+Syntax: tar [options] archive_file files_to_compress
+Example: tar -czvf archive.tar.gz my_directory/ or tar -xzvf archive.tar.gz
