@@ -1,0 +1,76 @@
+---
+- name: Fetch source code from GitHub and build using Jenkins
+  hosts: jenkins-server
+  become: yes
+  
+  vars:
+    jenkins_url: http://jenkins.example.com
+    jenkins_user: admin
+    jenkins_token: 123456789abcdefg
+    github_repo: my-org/my-repo
+    github_branch: main
+    maven_home: /usr/share/maven
+    sonarqube_url: http://sonarqube.example.com
+    sonarqube_token: 987654321abcdefg
+    nexus_url: http://nexus.example.com
+    nexus_user: admin
+    nexus_password: secretpassword
+    
+  tasks:
+    - name: Fetch source code from GitHub
+      git:
+        repo: "https://github.com/{{ github_repo }}"
+        dest: /tmp/my-repo
+        version: "{{ github_branch }}"
+      
+    - name: Create Jenkins job
+      jenkins_job:
+        url: "{{ jenkins_url }}"
+        user: "{{ jenkins_user }}"
+        password: "{{ jenkins_token }}"
+        name: my-repo
+        state: present
+        config_file: templates/jenkins-job.xml.j2
+      
+    - name: Trigger Jenkins build
+      jenkins_job:
+        url: "{{ jenkins_url }}"
+        user: "{{ jenkins_user }}"
+        password: "{{ jenkins_token }}"
+        name: my-repo
+        state: started
+      
+    - name: Wait for Jenkins build to complete
+      wait_for:
+        host: "{{ jenkins_url }}"
+        port: 8080
+        path: /job/my-repo/lastBuild/console
+        status_code: 200
+        timeout: 300
+      
+    - name: Get Jenkins build artifacts
+      uri:
+        url: "{{ jenkins_url }}/job/my-repo/lastSuccessfulBuild/api/json?tree=artifacts[*]"
+        user: "{{ jenkins_user }}"
+        password: "{{ jenkins_token }}"
+        return_content: yes
+      register: jenkins_artifacts
+      
+    - name: Download Jenkins build artifacts
+      get_url:
+        url: "{{ jenkins_url }}/job/my-repo/lastSuccessfulBuild/artifact/{{ item }}"
+        dest: /tmp/my-repo/target/
+      loop: "{{ jenkins_artifacts.json['artifacts'] | map(attribute='relativePath') | list }}"
+          
+    - name: Perform code analysis with SonarQube
+      command: "{{ maven_home }}/bin/mvn sonar:sonar -Dsonar.host.url={{ sonarqube_url }} -Dsonar.login={{ sonarqube_token }}"
+      args:
+        chdir: /tmp/my-repo/
+      
+    - name: Upload artifacts to Nexus repository
+      nexus3_artifact:
+        url: "{{ nexus_url }}"
+        username: "{{ nexus_user }}"
+        password: "{{ nexus_password }}"
+        artifact_path: /tmp/my-repo/target/*.jar
+        repository: releases
