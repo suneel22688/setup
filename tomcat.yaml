@@ -1,0 +1,26 @@
+---
+- name: Install Tomcat on remote server
+  hosts: remote-server
+  become: yes
+  
+  tasks:
+    - name: Install Java
+      apt:
+        name: default-jdk
+        state: present
+          
+    - name: Download Tomcat
+      get_url:
+        url: https://downloads.apache.org/tomcat/tomcat-10/v10.0.15/bin/apache-tomcat-10.0.15.tar.gz
+        dest: /tmp/
+          
+    - name: Extract Tomcat
+      unarchive:
+        src: /tmp/apache-tomcat-10.0.15.tar.gz
+        dest: /opt/
+        remote_src: yes
+        copy: no
+        extra_opts: "--strip-components=1"
+          
+    - name: Start Tomcat
+      command: /opt/bin/startup.sh
