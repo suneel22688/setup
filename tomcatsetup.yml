@@ -1,0 +1,61 @@
+---
+- name: Install and set up Tomcat on remote server
+  hosts: remote-server
+  become: yes
+  
+  vars:
+    tomcat_user: tomcat
+    tomcat_group: tomcat
+    tomcat_version: 10.0.15
+    tomcat_home: /opt/tomcat
+    tomcat_port: 8080
+    
+  tasks:
+    - name: Install Java
+      apt:
+        name: default-jdk
+        state: present
+          
+    - name: Install Tomcat user and group
+      group:
+        name: "{{ tomcat_group }}"
+        state: present
+          
+      user:
+        name: "{{ tomcat_user }}"
+        group: "{{ tomcat_group }}"
+        home: "{{ tomcat_home }}"
+        system: yes
+          
+    - name: Download Tomcat
+      get_url:
+        url: "https://downloads.apache.org/tomcat/tomcat-{{ tomcat_version }}/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+        dest: /tmp/
+          
+    - name: Extract Tomcat
+      unarchive:
+        src: /tmp/apache-tomcat-{{ tomcat_version }}.tar.gz
+        dest: "{{ tomcat_home }}"
+        remote_src: yes
+        copy: no
+        extra_opts: "--strip-components=1"
+      become_user: "{{ tomcat_user }}"
+          
+    - name: Configure Tomcat server
+      template:
+        src: templates/server.xml.j2
+        dest: "{{ tomcat_home }}/conf/server.xml"
+      become_user: "{{ tomcat_user }}"
+          
+    - name: Start Tomcat
+      command: "{{ tomcat_home }}/bin/startup.sh"
+      become_user: "{{ tomcat_user }}"
+      
+    - name: Enable firewall for Tomcat
+      ufw:
+        rule: allow
+        port: "{{ tomcat_port }}"
+      
+    - name: Save firewall rules
+      command: ufw save
+      
