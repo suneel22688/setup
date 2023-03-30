@@ -1,0 +1,36 @@
+---
+- name: Configure New Server
+  hosts: new_server
+  become: true
+  vars:
+    username: myuser
+    ssh_key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+  tasks:
+    - name: Create new user
+      user:
+        name: "{{ username }}"
+        state: present
+        create_home: yes
+        shell: /bin/bash
+      become: true
+
+    - name: Add SSH key to new user
+      authorized_key:
+        user: "{{ username }}"
+        key: "{{ ssh_key }}"
+      become: true
+
+    - name: Install required packages
+      package:
+        name:
+          - nginx
+          - mysql-server
+          - python3
+        state: latest
+      become: true
+
+    - name: Configure firewall
+      ufw:
+        rule: allow
+        port: "80,443"
+      become: true
