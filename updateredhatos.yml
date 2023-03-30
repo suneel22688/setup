@@ -1,0 +1,12 @@
+---
+- name: Update CentOS/RHEL
+  hosts: all
+  become: true
+  tasks:
+    - name: Update yum cache
+      yum:
+        update_cache: yes
+    - name: Upgrade packages
+      yum:
+        name: '*'
+        state: latest
